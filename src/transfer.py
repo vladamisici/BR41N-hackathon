@@ -17,7 +17,7 @@ from sklearn.pipeline import Pipeline
 
 from pyriemann.classification import MDM
 from pyriemann.estimation import Covariances
-from pyriemann.transfer import TLCenter, TLRotate, TLStretch, TLClassifier
+from pyriemann.transfer import TLCenter, TLRotate, TLScale, TLClassifier
 
 import mne
 
@@ -67,7 +67,7 @@ def rpa_transfer_pipeline(
 
     # RPA pipeline
     centering = TLCenter(target_domain="target_domain")
-    scaling = TLStretch(target_domain="target_domain")
+    scaling = TLScale(target_domain="target_domain")
     rotation = TLRotate(target_domain="target_domain", metric="riemann")
 
     # Fit transforms on all data with domain info

@@ -35,13 +35,14 @@ All sensorimotor. Reference: right earlobe. Ground: FPz.
 - 240 trials per session (3 runs × 80), balanced left/right
 - Epoch window: **0.5–4.5s post-cue** (captures MI, avoids evoked response)
 
-## Strategy (Priority Order)
+## Strategy (Priority Order — validated on BNCI2014_001)
 
-1. **Riemannian geometry classifiers FIRST** — TS+LR, MDM, FgMDM, TS+SVM (no GPU, robust to noise, works with 160 trials)
-1. **ACM (Augmented Covariance Method)** — Takens delay embedding → covariance → tangent space → SVM
-1. **Deep learning ensemble** — EEGNet + ShallowConvNet via braindecode, with data augmentation
-1. **Soft voting ensemble** — 0.4×Riemannian + 0.3×EEGNet + 0.3×ShallowConvNet
-1. **Transfer learning** — Riemannian Procrustes Analysis if time allows
+1. **FBCSP+LDA (primary)** — Filter Bank CSP with 6 sub-bands (4–8, 8–12, 12–16, 16–20, 20–24, 24–30 Hz). Best overall on healthy data (+26pp over CSP on hard subjects). Critical for stroke where ERD shifts to theta.
+2. **ACM(3,7) (secondary)** — Augmented Covariance Method with Takens delay embedding (order=3, lag=7). Beats TS+LR on all tested subjects by capturing temporal dynamics in the covariance matrix.
+3. **TS+LR (reliable backup)** — Riemannian tangent space + logistic regression. Robust to noise, no hyperparameters to tune, works with 160 trials.
+4. **CSP+LDA (baseline to beat)** — Standard CSP baseline. Report this to show improvement.
+5. **Additional Riemannian (comparison)** — FgMDM, TS+SVM, MDM, TS+LDA for thorough method comparison.
+6. **Transfer learning** — Riemannian Procrustes Analysis if time allows.
 
 ## Technical Rules
 
@@ -57,11 +58,9 @@ All sensorimotor. Reference: right earlobe. Ground: FPz.
 - Python 3.11
 - mne >= 1.6
 - pyriemann >= 0.5
-- braindecode >= 0.8
 - moabb >= 1.0
 - scikit-learn >= 1.4
-- torch >= 2.0
-- scipy, numpy, matplotlib, seaborn, pandas, deap, jupyter
+- scipy, numpy, matplotlib, seaborn, pandas, jupyter
 
 ## Project Structure
 
@@ -74,11 +73,11 @@ stroke-mi-classifier/
 │   ├── __init__.py
 │   ├── loading.py              ← load_gtec_stroke_data(), extract_epochs()
 │   ├── preprocessing.py        ← filtering, artifact rejection, augmentation
-│   ├── classifiers.py          ← build_all_pipelines(), ACM, ensemble
+│   ├── classifiers.py          ← build_all_pipelines(), FBCSP+LDA, ACM
 │   ├── transfer.py             ← RPA transfer learning
 │   ├── lateralization.py       ← compute_laterality_index()
 │   ├── evaluation.py           ← full_evaluation(), permutation testing
-│   ├── channel_selection.py    ← csp_rank_channels(), ga_channel_selection()
+│   ├── channel_selection.py    ← csp_rank_channels()
 │   └── visualization.py        ← topomaps, confusion matrices, comparison plots
 ├── notebooks/
 │   ├── 01_explore.ipynb

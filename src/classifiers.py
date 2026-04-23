@@ -1,7 +1,13 @@
 """Classification pipelines for stroke MI-BCI.
 
-Riemannian geometry classifiers, CSP baselines, ACM (Augmented Covariance
-Method), deep learning ensemble, and evaluation utilities.
+Hackathon run order (validated on BNCI2014_001):
+  1. FBCSP+LDA  — primary (filter-bank CSP, best on healthy + stroke)
+  2. ACM(3,7)   — secondary (Takens delay embedding, captures temporal dynamics)
+  3. TS+LR      — reliable backup (Riemannian tangent space, robust to noise)
+  4. CSP+LDA    — baseline to beat
+
+Additional Riemannian pipelines (MDM, FgMDM, TS+SVM, TS+LDA) included
+for thorough comparison in the final report.
 """
 
 from __future__ import annotations
@@ -9,6 +15,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import mne
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
@@ -25,65 +32,113 @@ from pyriemann.tangentspace import TangentSpace
 
 logger = logging.getLogger(__name__)
 
+# Default FBCSP filter banks — covers theta through low-gamma,
+# critical for stroke where ERD shifts to theta/low-alpha.
+DEFAULT_FILTER_BANKS: list[tuple[float, float]] = [
+    (4, 8),    # theta
+    (8, 12),   # alpha / mu
+    (12, 16),  # low beta
+    (16, 20),  # mid beta
+    (20, 24),  # high beta
+    (24, 30),  # low gamma
+]
 
-def build_all_pipelines() -> dict[str, Pipeline]:
-    """Build all classification pipelines for comparison.
+
+# ---------------------------------------------------------------------------
+# Filter Bank CSP
+# ---------------------------------------------------------------------------
+
+class FilterBankCSP(BaseEstimator, TransformerMixin):
+    """Filter Bank Common Spatial Patterns.
+
+    Splits the signal into sub-bands, applies CSP independently to each,
+    and concatenates the log-variance features.
+
+    Parameters
+    ----------
+    bands : list of (low, high) tuples
+        Frequency bands for the filter bank.
+    sfreq : float
+        Sampling frequency in Hz.
+    n_components : int
+        Number of CSP components per band.
+    """
+
+    def __init__(
+        self,
+        bands: list[tuple[float, float]] | None = None,
+        sfreq: float = 500.0,
+        n_components: int = 4,
+    ) -> None:
+        self.bands = bands or DEFAULT_FILTER_BANKS
+        self.sfreq = sfreq
+        self.n_components = n_components
+
+    def fit(self, X: NDArray, y: NDArray) -> "FilterBankCSP":
+        """Fit one CSP per sub-band."""
+        from mne.decoding import CSP
+
+        self.csps_: list[tuple[float, float, Any]] = []
+        for low, high in self.bands:
+            X_filt = mne.filter.filter_data(
+                X.astype(np.float64), self.sfreq, low, high,
+                method="iir",
+                iir_params=dict(order=5, ftype="butter"),
+                verbose=False,
+            )
+            csp = CSP(
+                n_components=self.n_components,
+                reg="ledoit_wolf",
+                log=True,
+            )
+            csp.fit(X_filt, y)
+            self.csps_.append((low, high, csp))
+        return self
+
+    def transform(self, X: NDArray) -> NDArray:
+        """Extract and concatenate CSP features from each sub-band."""
+        features = []
+        for low, high, csp in self.csps_:
+            X_filt = mne.filter.filter_data(
+                X.astype(np.float64), self.sfreq, low, high,
+                method="iir",
+                iir_params=dict(order=5, ftype="butter"),
+                verbose=False,
+            )
+            features.append(csp.transform(X_filt))
+        return np.hstack(features)
+
+
+def build_fbcsp_pipeline(
+    sfreq: float = 500.0,
+    bands: list[tuple[float, float]] | None = None,
+    n_components: int = 4,
+) -> Pipeline:
+    """Build a Filter Bank CSP + LDA pipeline.
+
+    Parameters
+    ----------
+    sfreq : float
+        Sampling frequency in Hz.
+    bands : list of (low, high) tuples, optional
+        Frequency bands. Defaults to DEFAULT_FILTER_BANKS.
+    n_components : int
+        CSP components per band.
 
     Returns
     -------
-    dict[str, Pipeline]
-        Pipeline name → sklearn Pipeline.
-
-    Notes
-    -----
-    Covariance estimators use 'oas' or 'lwf' — never 'scm'
-    (ill-conditioned with 16 channels on stroke data).
+    Pipeline
+        FBCSP+LDA pipeline.
     """
-    from mne.decoding import CSP
-
-    pipelines: dict[str, Pipeline] = {}
-
-    # 1. CSP + LDA baseline
-    pipelines["CSP+LDA"] = Pipeline([
-        ("csp", CSP(n_components=4, reg="ledoit_wolf", log=True)),
+    return Pipeline([
+        ("fbcsp", FilterBankCSP(bands=bands, sfreq=sfreq, n_components=n_components)),
         ("lda", LDA()),
     ])
 
-    # 2. Tangent Space + Logistic Regression (Riemannian)
-    pipelines["TS+LR"] = Pipeline([
-        ("cov", Covariances(estimator="oas")),
-        ("ts", TangentSpace(metric="riemann")),
-        ("lr", LogisticRegression(C=1.0, class_weight="balanced", max_iter=1000)),
-    ])
 
-    # 3. Minimum Distance to Mean (Riemannian)
-    pipelines["MDM"] = Pipeline([
-        ("cov", Covariances(estimator="oas")),
-        ("mdm", MDM(metric="riemann")),
-    ])
-
-    # 4. Fisher Geodesic MDM (Riemannian)
-    pipelines["FgMDM"] = Pipeline([
-        ("cov", Covariances(estimator="oas")),
-        ("fgmdm", FgMDM(metric="riemann")),
-    ])
-
-    # 5. Tangent Space + SVM (Riemannian)
-    pipelines["TS+SVM"] = Pipeline([
-        ("cov", Covariances(estimator="lwf")),
-        ("ts", TangentSpace(metric="riemann")),
-        ("svm", SVC(kernel="rbf", class_weight="balanced", probability=True)),
-    ])
-
-    # 6. Tangent Space + LDA (Riemannian)
-    pipelines["TS+LDA"] = Pipeline([
-        ("cov", Covariances(estimator="lwf")),
-        ("ts", TangentSpace(metric="riemann")),
-        ("lda", LDA()),
-    ])
-
-    return pipelines
-
+# ---------------------------------------------------------------------------
+# Augmented Covariance Method (ACM)
+# ---------------------------------------------------------------------------
 
 class AugmentedDataset(BaseEstimator, TransformerMixin):
     """Takens delay embedding for the Augmented Covariance Method (ACM).
@@ -161,133 +216,87 @@ def build_acm_pipeline(order: int = 3, lag: int = 7) -> Pipeline:
     ])
 
 
-def build_ensemble(
-    X_train: NDArray,
-    y_train: NDArray,
-) -> Any:
-    """Build and fit a soft voting ensemble.
+# ---------------------------------------------------------------------------
+# Pipeline builder
+# ---------------------------------------------------------------------------
 
-    Combines TS+LR (weight 0.4), EEGNet (0.3), and ShallowConvNet (0.3)
-    via weighted probability averaging.
+def build_all_pipelines(sfreq: float = 500.0) -> dict[str, Pipeline]:
+    """Build all classification pipelines in hackathon priority order.
+
+    Run order:
+      1. FBCSP+LDA  — primary
+      2. ACM(3,7)   — secondary
+      3. TS+LR      — reliable backup
+      4. CSP+LDA    — baseline to beat
+      5–8. Additional Riemannian pipelines for comparison
 
     Parameters
     ----------
-    X_train : NDArray, shape (n_epochs, n_channels, n_times)
-        Training EEG epochs.
-    y_train : NDArray, shape (n_epochs,)
-        Training labels.
+    sfreq : float
+        Sampling frequency in Hz (needed for FBCSP filtering).
 
     Returns
     -------
-    EnsembleClassifier
-        Fitted ensemble with predict and predict_proba methods.
+    dict[str, Pipeline]
+        Pipeline name → sklearn Pipeline (insertion-ordered).
+
+    Notes
+    -----
+    Covariance estimators use 'oas' or 'lwf' — never 'scm'
+    (ill-conditioned with 16 channels on stroke data).
     """
-    from braindecode.models import EEGNetv4, ShallowFBCSPNet
-    from braindecode import EEGClassifier
+    from mne.decoding import CSP
 
-    import torch
+    pipelines: dict[str, Pipeline] = {}
 
-    n_channels = X_train.shape[1]
-    n_times = X_train.shape[2]
-    n_classes = len(np.unique(y_train))
+    # 1. FBCSP+LDA — primary (filter-bank decomposition)
+    pipelines["FBCSP+LDA"] = build_fbcsp_pipeline(sfreq=sfreq)
 
-    # 1. Riemannian TS+LR
-    ts_lr = Pipeline([
+    # 2. ACM(3,7) — secondary (temporal dynamics via delay embedding)
+    pipelines["ACM(3,7)"] = build_acm_pipeline(order=3, lag=7)
+
+    # 3. TS+LR — reliable Riemannian backup
+    pipelines["TS+LR"] = Pipeline([
         ("cov", Covariances(estimator="oas")),
         ("ts", TangentSpace(metric="riemann")),
         ("lr", LogisticRegression(C=1.0, class_weight="balanced", max_iter=1000)),
     ])
 
-    # 2. EEGNet via braindecode
-    eegnet_model = EEGNetv4(
-        n_chans=n_channels,
-        n_outputs=n_classes,
-        n_times=n_times,
-    )
-    eegnet = EEGClassifier(
-        module=eegnet_model,
-        max_epochs=100,
-        batch_size=32,
-        optimizer=torch.optim.Adam,
-        optimizer__lr=1e-3,
-        optimizer__weight_decay=1e-4,
-        train_split=None,
-        verbose=0,
-    )
+    # 4. CSP+LDA — baseline to beat
+    pipelines["CSP+LDA"] = Pipeline([
+        ("csp", CSP(n_components=4, reg="ledoit_wolf", log=True)),
+        ("lda", LDA()),
+    ])
 
-    # 3. ShallowConvNet via braindecode
-    shallow_model = ShallowFBCSPNet(
-        n_chans=n_channels,
-        n_outputs=n_classes,
-        n_times=n_times,
-    )
-    shallow = EEGClassifier(
-        module=shallow_model,
-        max_epochs=100,
-        batch_size=32,
-        optimizer=torch.optim.Adam,
-        optimizer__lr=1e-3,
-        optimizer__weight_decay=1e-4,
-        train_split=None,
-        verbose=0,
-    )
+    # 5–8. Additional Riemannian pipelines for thorough comparison
+    pipelines["FgMDM"] = Pipeline([
+        ("cov", Covariances(estimator="oas")),
+        ("fgmdm", FgMDM(metric="riemann")),
+    ])
 
-    ensemble = _EnsembleClassifier(
-        estimators=[ts_lr, eegnet, shallow],
-        weights=[0.4, 0.3, 0.3],
-    )
-    ensemble.fit(X_train, y_train)
-    return ensemble
+    pipelines["TS+SVM"] = Pipeline([
+        ("cov", Covariances(estimator="lwf")),
+        ("ts", TangentSpace(metric="riemann")),
+        ("svm", SVC(kernel="rbf", class_weight="balanced", probability=True)),
+    ])
+
+    pipelines["MDM"] = Pipeline([
+        ("cov", Covariances(estimator="oas")),
+        ("mdm", MDM(metric="riemann")),
+    ])
+
+    pipelines["TS+LDA"] = Pipeline([
+        ("cov", Covariances(estimator="lwf")),
+        ("ts", TangentSpace(metric="riemann")),
+        ("lda", LDA()),
+    ])
+
+    return pipelines
 
 
-class _EnsembleClassifier(BaseEstimator):
-    """Soft voting ensemble with weighted probability averaging.
-
-    Parameters
-    ----------
-    estimators : list
-        List of sklearn-compatible classifiers.
-    weights : list[float]
-        Weight for each estimator's predicted probabilities.
-    """
-
-    def __init__(
-        self,
-        estimators: list[Any] | None = None,
-        weights: list[float] | None = None,
-    ) -> None:
-        self.estimators = estimators or []
-        self.weights = weights or [1.0 / len(self.estimators)] * len(self.estimators)
-
-    def fit(self, X: NDArray, y: NDArray) -> "_EnsembleClassifier":
-        """Fit all estimators."""
-        self.classes_ = np.unique(y)
-        for est in self.estimators:
-            est.fit(X, y)
-        return self
-
-    def predict_proba(self, X: NDArray) -> NDArray:
-        """Weighted average of predicted probabilities."""
-        probas = []
-        for est, w in zip(self.estimators, self.weights):
-            if hasattr(est, "predict_proba"):
-                probas.append(w * est.predict_proba(X))
-            else:
-                # Fall back to decision function for classifiers without predict_proba
-                dec = est.decision_function(X)
-                if dec.ndim == 1:
-                    prob = np.column_stack([1 - dec, dec])
-                else:
-                    prob = dec
-                prob = prob / prob.sum(axis=1, keepdims=True)
-                probas.append(w * prob)
-        return np.sum(probas, axis=0)
-
-    def predict(self, X: NDArray) -> NDArray:
-        """Predict class labels via argmax of averaged probabilities."""
-        proba = self.predict_proba(X)
-        return self.classes_[np.argmax(proba, axis=1)]
-
+# ---------------------------------------------------------------------------
+# Evaluation
+# ---------------------------------------------------------------------------
 
 def evaluate_all(
     X: NDArray,
