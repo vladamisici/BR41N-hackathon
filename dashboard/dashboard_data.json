@@ -1,0 +1,790 @@
+{
+  "P1": {
+    "pre": {
+      "n_train": 80,
+      "n_test": 80,
+      "pipelines": {
+        "FBCSP+LDA": {
+          "accuracy": 0.875,
+          "kappa": 0.75,
+          "confusion_matrix": [
+            [
+              36,
+              4
+            ],
+            [
+              6,
+              34
+            ]
+          ]
+        },
+        "ACM(3,7)": {
+          "accuracy": 0.9125,
+          "kappa": 0.825,
+          "confusion_matrix": [
+            [
+              38,
+              2
+            ],
+            [
+              5,
+              35
+            ]
+          ]
+        },
+        "TS+LR": {
+          "accuracy": 0.875,
+          "kappa": 0.75,
+          "confusion_matrix": [
+            [
+              35,
+              5
+            ],
+            [
+              5,
+              35
+            ]
+          ]
+        },
+        "CSP+LDA": {
+          "accuracy": 0.5125,
+          "kappa": 0.025000000000000022,
+          "confusion_matrix": [
+            [
+              27,
+              13
+            ],
+            [
+              26,
+              14
+            ]
+          ]
+        },
+        "FgMDM": {
+          "accuracy": 0.825,
+          "kappa": 0.65,
+          "confusion_matrix": [
+            [
+              34,
+              6
+            ],
+            [
+              8,
+              32
+            ]
+          ]
+        },
+        "TS+SVM": {
+          "accuracy": 0.8125,
+          "kappa": 0.625,
+          "confusion_matrix": [
+            [
+              37,
+              3
+            ],
+            [
+              12,
+              28
+            ]
+          ]
+        },
+        "MDM": {
+          "accuracy": 0.7625,
+          "kappa": 0.525,
+          "confusion_matrix": [
+            [
+              33,
+              7
+            ],
+            [
+              12,
+              28
+            ]
+          ]
+        },
+        "TS+LDA": {
+          "accuracy": 0.65,
+          "kappa": 0.30000000000000004,
+          "confusion_matrix": [
+            [
+              25,
+              15
+            ],
+            [
+              13,
+              27
+            ]
+          ]
+        }
+      },
+      "lateralization": {
+        "mu_li": -0.29684511429753685,
+        "beta_li": -0.11737099800334201,
+        "mu_c3_power": 8.096009702359772e-13,
+        "mu_c4_power": 1.915327909203336e-12,
+        "beta_c3_power": 4.5236734106384314e-13,
+        "beta_c4_power": 7.056567866487634e-13
+      }
+    },
+    "post": {
+      "n_train": 80,
+      "n_test": 80,
+      "pipelines": {
+        "FBCSP+LDA": {
+          "accuracy": 0.9375,
+          "kappa": 0.875,
+          "confusion_matrix": [
+            [
+              40,
+              0
+            ],
+            [
+              5,
+              35
+            ]
+          ]
+        },
+        "ACM(3,7)": {
+          "accuracy": 0.8125,
+          "kappa": 0.625,
+          "confusion_matrix": [
+            [
+              35,
+              5
+            ],
+            [
+              10,
+              30
+            ]
+          ]
+        },
+        "TS+LR": {
+          "accuracy": 0.75,
+          "kappa": 0.5,
+          "confusion_matrix": [
+            [
+              38,
+              2
+            ],
+            [
+              18,
+              22
+            ]
+          ]
+        },
+        "CSP+LDA": {
+          "accuracy": 0.7375,
+          "kappa": 0.475,
+          "confusion_matrix": [
+            [
+              40,
+              0
+            ],
+            [
+              21,
+              19
+            ]
+          ]
+        },
+        "FgMDM": {
+          "accuracy": 0.9125,
+          "kappa": 0.825,
+          "confusion_matrix": [
+            [
+              39,
+              1
+            ],
+            [
+              6,
+              34
+            ]
+          ]
+        },
+        "TS+SVM": {
+          "accuracy": 0.75,
+          "kappa": 0.5,
+          "confusion_matrix": [
+            [
+              31,
+              9
+            ],
+            [
+              11,
+              29
+            ]
+          ]
+        },
+        "MDM": {
+          "accuracy": 0.6625,
+          "kappa": 0.32499999999999996,
+          "confusion_matrix": [
+            [
+              37,
+              3
+            ],
+            [
+              24,
+              16
+            ]
+          ]
+        },
+        "TS+LDA": {
+          "accuracy": 0.8,
+          "kappa": 0.6,
+          "confusion_matrix": [
+            [
+              34,
+              6
+            ],
+            [
+              10,
+              30
+            ]
+          ]
+        }
+      },
+      "lateralization": {
+        "mu_li": 0.07453459505733309,
+        "beta_li": 0.03142410958845229,
+        "mu_c3_power": 1.8526079038128217e-12,
+        "mu_c4_power": 1.526232786164769e-12,
+        "beta_c3_power": 7.204809373656409e-13,
+        "beta_c4_power": 6.461128353019847e-13
+      }
+    }
+  },
+  "P2": {
+    "pre": {
+      "n_train": 80,
+      "n_test": 80,
+      "pipelines": {
+        "FBCSP+LDA": {
+          "accuracy": 0.8375,
+          "kappa": 0.675,
+          "confusion_matrix": [
+            [
+              34,
+              6
+            ],
+            [
+              7,
+              33
+            ]
+          ]
+        },
+        "ACM(3,7)": {
+          "accuracy": 0.6625,
+          "kappa": 0.32499999999999996,
+          "confusion_matrix": [
+            [
+              36,
+              4
+            ],
+            [
+              23,
+              17
+            ]
+          ]
+        },
+        "TS+LR": {
+          "accuracy": 0.6375,
+          "kappa": 0.275,
+          "confusion_matrix": [
+            [
+              32,
+              8
+            ],
+            [
+              21,
+              19
+            ]
+          ]
+        },
+        "CSP+LDA": {
+          "accuracy": 0.5625,
+          "kappa": 0.125,
+          "confusion_matrix": [
+            [
+              28,
+              12
+            ],
+            [
+              23,
+              17
+            ]
+          ]
+        },
+        "FgMDM": {
+          "accuracy": 0.65,
+          "kappa": 0.30000000000000004,
+          "confusion_matrix": [
+            [
+              31,
+              9
+            ],
+            [
+              19,
+              21
+            ]
+          ]
+        },
+        "TS+SVM": {
+          "accuracy": 0.575,
+          "kappa": 0.15000000000000002,
+          "confusion_matrix": [
+            [
+              34,
+              6
+            ],
+            [
+              28,
+              12
+            ]
+          ]
+        },
+        "MDM": {
+          "accuracy": 0.5125,
+          "kappa": 0.025000000000000022,
+          "confusion_matrix": [
+            [
+              25,
+              15
+            ],
+            [
+              24,
+              16
+            ]
+          ]
+        },
+        "TS+LDA": {
+          "accuracy": 0.6625,
+          "kappa": 0.32499999999999996,
+          "confusion_matrix": [
+            [
+              32,
+              8
+            ],
+            [
+              19,
+              21
+            ]
+          ]
+        }
+      },
+      "lateralization": {
+        "mu_li": -0.18636820116104044,
+        "beta_li": -0.05182434802525369,
+        "mu_c3_power": 3.2730457219014396e-12,
+        "mu_c4_power": 5.001532108722977e-12,
+        "beta_c3_power": 1.0579030547144605e-12,
+        "beta_c4_power": 1.2282033781386658e-12
+      }
+    },
+    "post": {
+      "n_train": 80,
+      "n_test": 80,
+      "pipelines": {
+        "FBCSP+LDA": {
+          "accuracy": 1.0,
+          "kappa": 1.0,
+          "confusion_matrix": [
+            [
+              40,
+              0
+            ],
+            [
+              0,
+              40
+            ]
+          ]
+        },
+        "ACM(3,7)": {
+          "accuracy": 0.9875,
+          "kappa": 0.975,
+          "confusion_matrix": [
+            [
+              40,
+              0
+            ],
+            [
+              1,
+              39
+            ]
+          ]
+        },
+        "TS+LR": {
+          "accuracy": 0.9875,
+          "kappa": 0.975,
+          "confusion_matrix": [
+            [
+              40,
+              0
+            ],
+            [
+              1,
+              39
+            ]
+          ]
+        },
+        "CSP+LDA": {
+          "accuracy": 0.925,
+          "kappa": 0.85,
+          "confusion_matrix": [
+            [
+              36,
+              4
+            ],
+            [
+              2,
+              38
+            ]
+          ]
+        },
+        "FgMDM": {
+          "accuracy": 0.9625,
+          "kappa": 0.925,
+          "confusion_matrix": [
+            [
+              38,
+              2
+            ],
+            [
+              1,
+              39
+            ]
+          ]
+        },
+        "TS+SVM": {
+          "accuracy": 0.95,
+          "kappa": 0.9,
+          "confusion_matrix": [
+            [
+              39,
+              1
+            ],
+            [
+              3,
+              37
+            ]
+          ]
+        },
+        "MDM": {
+          "accuracy": 0.9125,
+          "kappa": 0.825,
+          "confusion_matrix": [
+            [
+              36,
+              4
+            ],
+            [
+              3,
+              37
+            ]
+          ]
+        },
+        "TS+LDA": {
+          "accuracy": 0.7625,
+          "kappa": 0.525,
+          "confusion_matrix": [
+            [
+              32,
+              8
+            ],
+            [
+              11,
+              29
+            ]
+          ]
+        }
+      },
+      "lateralization": {
+        "mu_li": -0.18549924878047608,
+        "beta_li": 0.49682175405453305,
+        "mu_c3_power": 4.011116299668032e-12,
+        "mu_c4_power": 6.065893249835006e-12,
+        "beta_c3_power": 4.769282443304063e-12,
+        "beta_c4_power": 1.2713453789878482e-12
+      }
+    }
+  },
+  "P3": {
+    "pre": {
+      "n_train": 80,
+      "n_test": 80,
+      "pipelines": {
+        "FBCSP+LDA": {
+          "accuracy": 0.8,
+          "kappa": 0.6,
+          "confusion_matrix": [
+            [
+              26,
+              14
+            ],
+            [
+              2,
+              38
+            ]
+          ]
+        },
+        "ACM(3,7)": {
+          "accuracy": 0.975,
+          "kappa": 0.95,
+          "confusion_matrix": [
+            [
+              39,
+              1
+            ],
+            [
+              1,
+              39
+            ]
+          ]
+        },
+        "TS+LR": {
+          "accuracy": 0.875,
+          "kappa": 0.75,
+          "confusion_matrix": [
+            [
+              37,
+              3
+            ],
+            [
+              7,
+              33
+            ]
+          ]
+        },
+        "CSP+LDA": {
+          "accuracy": 0.8625,
+          "kappa": 0.725,
+          "confusion_matrix": [
+            [
+              36,
+              4
+            ],
+            [
+              7,
+              33
+            ]
+          ]
+        },
+        "FgMDM": {
+          "accuracy": 0.875,
+          "kappa": 0.75,
+          "confusion_matrix": [
+            [
+              36,
+              4
+            ],
+            [
+              6,
+              34
+            ]
+          ]
+        },
+        "TS+SVM": {
+          "accuracy": 0.875,
+          "kappa": 0.75,
+          "confusion_matrix": [
+            [
+              37,
+              3
+            ],
+            [
+              7,
+              33
+            ]
+          ]
+        },
+        "MDM": {
+          "accuracy": 0.7875,
+          "kappa": 0.575,
+          "confusion_matrix": [
+            [
+              33,
+              7
+            ],
+            [
+              10,
+              30
+            ]
+          ]
+        },
+        "TS+LDA": {
+          "accuracy": 0.7875,
+          "kappa": 0.575,
+          "confusion_matrix": [
+            [
+              27,
+              13
+            ],
+            [
+              4,
+              36
+            ]
+          ]
+        }
+      },
+      "lateralization": {
+        "mu_li": -0.017880168986439834,
+        "beta_li": 0.20774824783703025,
+        "mu_c3_power": 2.702186828985769e-12,
+        "mu_c4_power": 2.818782869143779e-12,
+        "beta_c3_power": 1.3052319939918989e-12,
+        "beta_c4_power": 6.841857049779135e-13
+      }
+    },
+    "post": {
+      "n_train": 80,
+      "n_test": 80,
+      "pipelines": {
+        "FBCSP+LDA": {
+          "accuracy": 0.9375,
+          "kappa": 0.875,
+          "confusion_matrix": [
+            [
+              36,
+              4
+            ],
+            [
+              1,
+              39
+            ]
+          ]
+        },
+        "ACM(3,7)": {
+          "accuracy": 0.85,
+          "kappa": 0.7,
+          "confusion_matrix": [
+            [
+              30,
+              10
+            ],
+            [
+              2,
+              38
+            ]
+          ]
+        },
+        "TS+LR": {
+          "accuracy": 0.8,
+          "kappa": 0.6,
+          "confusion_matrix": [
+            [
+              28,
+              12
+            ],
+            [
+              4,
+              36
+            ]
+          ]
+        },
+        "CSP+LDA": {
+          "accuracy": 0.825,
+          "kappa": 0.65,
+          "confusion_matrix": [
+            [
+              31,
+              9
+            ],
+            [
+              5,
+              35
+            ]
+          ]
+        },
+        "FgMDM": {
+          "accuracy": 0.8,
+          "kappa": 0.6,
+          "confusion_matrix": [
+            [
+              28,
+              12
+            ],
+            [
+              4,
+              36
+            ]
+          ]
+        },
+        "TS+SVM": {
+          "accuracy": 0.7625,
+          "kappa": 0.525,
+          "confusion_matrix": [
+            [
+              28,
+              12
+            ],
+            [
+              7,
+              33
+            ]
+          ]
+        },
+        "MDM": {
+          "accuracy": 0.7625,
+          "kappa": 0.525,
+          "confusion_matrix": [
+            [
+              30,
+              10
+            ],
+            [
+              9,
+              31
+            ]
+          ]
+        },
+        "TS+LDA": {
+          "accuracy": 0.7375,
+          "kappa": 0.475,
+          "confusion_matrix": [
+            [
+              24,
+              16
+            ],
+            [
+              5,
+              35
+            ]
+          ]
+        }
+      },
+      "lateralization": {
+        "mu_li": -0.07299923695403934,
+        "beta_li": 0.1617201266051878,
+        "mu_c3_power": 3.1042754638237777e-12,
+        "mu_c4_power": 3.671932728240198e-12,
+        "beta_c3_power": 1.3527420141550461e-12,
+        "beta_c4_power": 8.369109353366399e-13
+      }
+    }
+  },
+  "baselines": {
+    "P1_pre": {
+      "CSP+LDA": 0.771,
+      "PCA+TVLDA": 0.929
+    },
+    "P1_post": {
+      "CSP+LDA": 0.939,
+      "PCA+TVLDA": 0.97
+    },
+    "P2_pre": {
+      "CSP+LDA": 0.684,
+      "PCA+TVLDA": 0.724
+    },
+    "P2_post": {
+      "CSP+LDA": 0.961,
+      "PCA+TVLDA": 0.974
+    },
+    "P3_pre": {
+      "CSP+LDA": 0.744,
+      "PCA+TVLDA": 0.936
+    },
+    "P3_post": {
+      "CSP+LDA": 0.797,
+      "PCA+TVLDA": 1.0
+    }
+  }
+}
