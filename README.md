@@ -4,6 +4,10 @@
 
 Patient-stratified left/right hand motor imagery classification from 16-channel EEG recorded with the g.tec recoveriX system. Three chronic stroke patients, pre and post rehabilitation intervention.
 
+📊 **[Interactive Dashboard](http://54.170.216.13:8501)** — explore results, run live classification experiments
+
+📄 **[Presentation slides](presentation/BR41N_StrokeRehab_Final.pptx)** — final hackathon presentation
+
 ## Results
 
 | Condition | Pipeline | Accuracy | vs CSP+LDA | vs PCA+TVLDA |
@@ -66,6 +70,9 @@ src/
 dashboard/
   app.py              Streamlit interactive dashboard
   dashboard_data.json Pre-computed results
+
+presentation/
+  BR41N_StrokeRehab_Final.pptx  Hackathon presentation slides
 
 run_hackathon.py      Main analysis script (train/test evaluation)
 run_validation_fast.py  Statistical validation suite

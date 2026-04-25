@@ -70,7 +70,7 @@ with st.sidebar:
     st.divider()
 
     st.markdown("**Vlada Misici**")
-    st.markdown("[GitHub](https://github.com/vladamisici)")
+    st.markdown("[GitHub](https://github.com/vladamisici/BR41N-hackathon) · [Profile](https://github.com/vladamisici)")
     st.divider()
     st.caption("Epoch: 3–7 s · Bandpass: 0.5–30 Hz")
     st.caption("16 channels · 256 Hz · No artifact rejection")

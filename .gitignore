@@ -17,6 +17,7 @@ results/
 
 # Temp PowerPoint files
 *.pptx
+!presentation/*.pptx
 
 # Deployment scripts (local only)
 hackathon-setup.sh
