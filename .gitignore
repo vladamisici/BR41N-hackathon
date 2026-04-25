@@ -2,7 +2,26 @@ __pycache__/
 *.pyc
 *.pyo
 .ipynb_checkpoints/
+.DS_Store
+~$*
+
+# Data (too large for git)
+dataset/
 data/
+
+# Results (regenerated from scripts)
 results/
-*.egg-info/
-.env
+
+# Keys (never commit)
+*.pem
+
+# Temp PowerPoint files
+*.pptx
+
+# Deployment scripts (local only)
+hackathon-setup.sh
+dashboard-setup.sh
+deploy_dashboard.sh
+
+# Prompt files (internal)
+CLAUDE_PROMPT_FOR_PRESENTATION.md

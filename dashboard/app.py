@@ -21,14 +21,22 @@ st.set_page_config(
     layout="wide",
 )
 
-# ── Clean CSS ────────────────────────────────────────────────────
+# ── Dark theme CSS ────────────────────────────────────────────────
 st.markdown("""
 <style>
-    [data-testid="stSidebar"] { background: #fafafa; }
+    .stApp { background-color: #0e1117; }
+    [data-testid="stSidebar"] { background: #161b22; }
     .block-container { padding-top: 2rem; }
-    h1 { font-weight: 700; font-size: 1.8rem !important; }
-    h2 { font-weight: 600; font-size: 1.3rem !important; color: #333; }
-    .stMetric { border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px; }
+    h1 { font-weight: 700; font-size: 1.8rem !important; color: #c9d1d9 !important; }
+    h2 { font-weight: 600; font-size: 1.3rem !important; color: #c9d1d9 !important; }
+    h3, h4 { color: #c9d1d9 !important; }
+    p, span, label, .stMarkdown { color: #c9d1d9; }
+    .stMetric { border: 1px solid #30363d; border-radius: 8px; padding: 12px; background: #161b22; }
+    .stMetric label { color: #8b949e !important; }
+    .stMetric [data-testid="stMetricValue"] { color: #58a6ff !important; }
+    .stCaption { color: #8b949e !important; }
+    .stDataFrame { background: #161b22; }
+    [data-testid="stTable"] { background: #161b22; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -347,4 +355,4 @@ else:
 
 # ── Footer ───────────────────────────────────────────────────────
 st.divider()
-st.caption("BR41N.IO Spring School 2026 · Vlada Misici · All results validated (permutation p < 0.005)")
+st.caption("BR41N.IO Spring School 2026 · [Vlada Misici](https://github.com/vladamisici) · All results validated (permutation p < 0.005)")
