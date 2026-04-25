@@ -26,6 +26,14 @@ st.markdown("""
 <style>
     .stApp { background-color: #0e1117; }
     [data-testid="stSidebar"] { background: #161b22; }
+    [data-testid="stSidebar"] * { color: #c9d1d9 !important; }
+    [data-testid="stSidebar"] .stSelectbox label,
+    [data-testid="stSidebar"] .stRadio label,
+    [data-testid="stSidebar"] .stMarkdown p,
+    [data-testid="stSidebar"] .stMarkdown h3,
+    [data-testid="stSidebar"] .stMarkdown a,
+    [data-testid="stSidebar"] .stCaption { color: #c9d1d9 !important; }
+    [data-testid="stSidebar"] hr { border-color: #30363d; }
     .block-container { padding-top: 2rem; }
     h1 { font-weight: 700; font-size: 1.8rem !important; color: #c9d1d9 !important; }
     h2 { font-weight: 600; font-size: 1.3rem !important; color: #c9d1d9 !important; }
@@ -35,8 +43,6 @@ st.markdown("""
     .stMetric label { color: #8b949e !important; }
     .stMetric [data-testid="stMetricValue"] { color: #58a6ff !important; }
     .stCaption { color: #8b949e !important; }
-    .stDataFrame { background: #161b22; }
-    [data-testid="stTable"] { background: #161b22; }
 </style>
 """, unsafe_allow_html=True)
 
