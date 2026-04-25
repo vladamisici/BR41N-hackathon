@@ -34,7 +34,7 @@ from src.lateralization import compute_laterality_index
 # ── Configuration ────────────────────────────────────────────────
 DATA_DIR = Path("dataset/stroke-rehab/")
 SFREQ = 256.0
-N_PERMUTATIONS = 1000
+N_PERMUTATIONS = 200
 
 print("=" * 75)
 print("STATISTICAL VALIDATION SUITE")
