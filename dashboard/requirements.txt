@@ -1,0 +1,8 @@
+streamlit>=1.30
+plotly>=5.18
+pandas
+numpy
+mne>=1.6
+pyriemann>=0.5
+scikit-learn>=1.4
+scipy
