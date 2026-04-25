@@ -225,12 +225,13 @@ fig.savefig(f"{OUT}/heatmap_pipelines.png")
 plt.close()
 
 # ═══════════════════════════════════════════════════════════════════
-# 5. erd_topomap_p1.png (uses real data)
+# 5. erd_topomap_p1.png → REPLACED with mu-band power bar chart
+#    (topomap was misleading without proper baseline correction)
 # ═══════════════════════════════════════════════════════════════════
-print("  5/8 erd_topomap_p1.png")
+print("  5/8 erd_topomap_p1.png (mu-band power per channel)")
 from src.loading import load_gtec_stroke_data, CH_NAMES
 
-fig, axes = plt.subplots(1, 2, figsize=(13, 6.5))
+fig, axes = plt.subplots(1, 2, figsize=(13, 6.5), sharey=True)
 
 for idx, (stage, ax) in enumerate(zip(["pre", "post"], axes)):
     mat_path = f"dataset/stroke-rehab/P1_{stage}_training.mat"
@@ -244,26 +245,51 @@ for idx, (stage, ax) in enumerate(zip(["pre", "post"], axes)):
     epochs = mne.Epochs(raw_filt, events, event_id=event_id, tmin=3.0, tmax=7.0,
                         baseline=None, reject=None, preload=True, verbose=False)
 
-    left_data = epochs["left"].get_data(picks="eeg")
-    right_data = epochs["right"].get_data(picks="eeg")
+    # Compute mu-band log-variance per channel, averaged across ALL trials
+    all_data = epochs.get_data(picks="eeg")
+    mu_power = np.log(np.var(all_data, axis=-1)).mean(axis=0)
 
-    left_power = np.log(np.var(left_data, axis=-1)).mean(axis=0)
-    right_power = np.log(np.var(right_data, axis=-1)).mean(axis=0)
-    diff = left_power - right_power
+    # Color by hemisphere
+    from src.loading import LEFT_IDX, RIGHT_IDX, MIDLINE_IDX
+    colors_ch = []
+    for ch_i in range(len(CH_NAMES)):
+        if ch_i in LEFT_IDX:
+            colors_ch.append("#3b82f6")  # blue = left hemisphere
+        elif ch_i in RIGHT_IDX:
+            colors_ch.append("#ef4444")  # red = right hemisphere
+        else:
+            colors_ch.append(GRAY)
 
-    info = mne.create_info(ch_names=CH_NAMES, sfreq=sfreq, ch_types="eeg")
-    info.set_montage(mne.channels.make_standard_montage("standard_1020"), on_missing="warn")
+    bars = ax.bar(range(len(CH_NAMES)), mu_power, color=colors_ch, edgecolor=DARK, linewidth=0.5)
+    ax.set_xticks(range(len(CH_NAMES)))
+    ax.set_xticklabels(CH_NAMES, rotation=45, ha="right", fontsize=8)
 
-    vmax = max(abs(diff.min()), abs(diff.max()), 0.5)
-    mne.viz.plot_topomap(diff, info, axes=ax, cmap="RdBu_r",
-                         vlim=(-vmax, vmax), contours=4, show=False)
+    # Mark C3 and C4
+    c3_i, c4_i = 4, 8
+    ax.get_children()[c3_i].set_edgecolor(WHITE)
+    ax.get_children()[c3_i].set_linewidth(2)
+    ax.get_children()[c4_i].set_edgecolor(WHITE)
+    ax.get_children()[c4_i].set_linewidth(2)
+    ax.text(c3_i, mu_power[c3_i] + 0.1, "C3", ha="center", fontsize=9, color=WHITE, fontweight="bold")
+    ax.text(c4_i, mu_power[c4_i] + 0.1, "C4", ha="center", fontsize=9, color=WHITE, fontweight="bold")
 
     li_vals = {"pre": -0.297, "post": +0.075}
     patterns = {"pre": "right-dominant", "post": "bilateral"}
-    ax.set_title(f"{stage.upper()}-intervention\n(LI={li_vals[stage]:+.3f}, {patterns[stage]})",
+    ax.set_title(f"P1 {stage.upper()} (LI={li_vals[stage]:+.3f}, {patterns[stage]})",
                  fontsize=12, color=WHITE, pad=10)
+    if idx == 0:
+        ax.set_ylabel("Mu-band log-variance", fontsize=11)
+    ax.grid(axis="y", alpha=0.15)
 
-fig.suptitle("Mu-band ERD topography — Patient 1 rehabilitation effect",
+# Legend
+from matplotlib.patches import Patch
+axes[0].legend(handles=[
+    Patch(color="#3b82f6", label="Left hemisphere"),
+    Patch(color="#ef4444", label="Right hemisphere"),
+    Patch(color=GRAY, label="Midline"),
+], fontsize=9, facecolor="#1a1a1a", edgecolor=GRAY, loc="upper right")
+
+fig.suptitle("Mu-band power per channel — Patient 1 (C3/C4 highlighted)",
              fontsize=14, fontweight="bold", color=WHITE, y=0.98)
 fig.tight_layout(rect=[0, 0, 1, 0.93])
 fig.savefig(f"{OUT}/erd_topomap_p1.png")
@@ -330,9 +356,9 @@ right_recall = cm[1, 1] / cm[1].sum() * 100
 ax.text(1, 2.15, f"Accuracy: {acc:.1%}  |  Left recall: {left_recall:.1f}%  |  Right recall: {right_recall:.1f}%",
         ha="center", va="top", fontsize=11, color=LIGHT_GRAY, transform=ax.transData)
 
-ax.set_title("P2_pre confusion matrix (FBCSP+LDA — the hardest patient)",
+ax.set_title("P2_pre confusion matrix\n(FBCSP+LDA — hardest patient)",
              fontsize=13, fontweight="bold", color=WHITE, pad=15)
-fig.tight_layout()
+fig.tight_layout(pad=2.0)
 fig.savefig(f"{OUT}/confusion_matrix_p2pre.png")
 plt.close()
 
@@ -368,7 +394,7 @@ im = ax.imshow(tfr_data, aspect="auto", origin="lower",
 
 for t, lbl in [(0, "trigger"), (2, "cue"), (3, "feedback"), (8, "relax")]:
     ax.axvline(x=t, color=WHITE, linewidth=1, alpha=0.7)
-    ax.text(t, 31, lbl, ha="center", va="bottom", fontsize=8, color=WHITE)
+    ax.text(t, freqs[-1] - 1, lbl, ha="center", va="top", fontsize=8, color=WHITE)
 
 # Highlight 3-7s × 8-13 Hz
 rect = plt.Rectangle((3, 8), 4, 5, fill=False, edgecolor=LIME, linewidth=2.5)
@@ -377,8 +403,8 @@ ax.text(5, 14, "MY EPOCH", ha="center", va="bottom", fontsize=9, color=LIME, fon
 
 ax.set_xlabel("Time (s)", fontsize=12)
 ax.set_ylabel("Frequency (Hz)", fontsize=12)
-ax.set_title("Time-frequency at C3 — Patient 1, right-hand MI (ERD visible at 8–13 Hz, 3–7s)",
-             fontsize=13, fontweight="bold", color=WHITE, pad=15)
+ax.set_title("Time-frequency at C3 — P1 pre, right-hand MI\n(weak ERD at lesioned hemisphere — why standard CSP fails)",
+             fontsize=12, fontweight="bold", color=WHITE, pad=10)
 cbar = fig.colorbar(im, ax=ax, shrink=0.8)
 cbar.set_label("Power (log-ratio)", color=WHITE)
 cbar.ax.yaxis.set_tick_params(color=WHITE)
