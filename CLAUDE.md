@@ -68,8 +68,9 @@ P3_post_training.mat  P3_post_test.mat
 ## Technical Rules
 
 - **Covariance estimation**: Always use `'oas'` or `'lwf'`, NEVER `'scm'` (ill-conditioned with 16 channels)
-- **Bandpass**: 4–40 Hz for stroke (wider than healthy 8–30 Hz — stroke shifts ERD to theta)
-- **Artifact rejection**: 150 µV threshold on epochs
+- **Bandpass**: 0.5–30 Hz (matches recoveriX paper; wider than standard 8–30 Hz)
+- **Epoch window**: 3–7s post-trigger (feedback phase — where discriminative MI activity peaks)
+- **Artifact rejection**: DISABLED for stroke data (150µV threshold discards too many valid trials)
 - **Cross-validation**: Stratified 5-fold, report accuracy + Cohen's kappa + permutation p-value
 - **All classifiers MUST be sklearn Pipeline-compatible** for clean cross-validation
 - **Report per-patient results individually**, not just grand average

@@ -204,10 +204,10 @@ def load_gtec_stroke_data(
 
 def extract_epochs(
     raw: mne.io.RawArray,
-    tmin: float = 0.5,
-    tmax: float = 4.5,
-    l_freq: float = 4.0,
-    h_freq: float = 40.0,
+    tmin: float = 3.0,
+    tmax: float = 7.0,
+    l_freq: float = 0.5,
+    h_freq: float = 30.0,
 ) -> tuple[NDArray, NDArray, mne.Epochs]:
     """Extract and preprocess epochs from Raw data.
 
@@ -267,8 +267,9 @@ def extract_epochs(
     else:
         raise ValueError(f"Unexpected event IDs: {event_ids}")
 
-    # Create epochs with artifact rejection
-    reject = dict(eeg=150e-6)  # 150 µV threshold
+    # Create epochs — no artifact rejection for stroke data
+    # (stroke patients have higher amplitude signals, 150µV threshold
+    #  was discarding too many valid trials)
     epochs = mne.Epochs(
         raw_filt,
         events,
@@ -276,14 +277,15 @@ def extract_epochs(
         tmin=tmin,
         tmax=tmax,
         baseline=None,
-        reject=reject,
+        reject=None,
         preload=True,
         verbose=False,
     )
 
-    n_dropped = len(events) - len(epochs)
-    if n_dropped > 0:
-        logger.info("Rejected %d/%d epochs (150 µV threshold)", n_dropped, len(events))
+    n_total = len(events)
+    n_kept = len(epochs)
+    if n_kept < n_total:
+        logger.info("Kept %d/%d epochs", n_kept, n_total)
 
     X = epochs.get_data(picks="eeg")  # (n_epochs, 16, n_times)
     y = epochs.events[:, 2]
