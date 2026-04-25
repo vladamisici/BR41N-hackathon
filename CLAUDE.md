@@ -15,19 +15,40 @@ from a chronic stroke patient's 16-channel EEG. Beat CSP+LDA baseline. Win $1000
 - Transpose `y` to (16, n_samples) for MNE
 - Scale µV → V: multiply by 1e-6
 
-### 16-Channel Montage (10/20)
+### 16-Channel Montage (10/20, confirmed from hackathon slides)
 
 ```
-FC5, FC1, FCz, FC2, FC6, C5, C3, C1, Cz, C2, C4, C6, CP5, CP1, CP2, CP6
+     FC3  FCz  FC4
+C5  C3  C1  Cz  C2  C4  C6
+     CP3  CP1  CPz  CP2  CP4
+               Pz
 ```
 
-All sensorimotor. Reference: right earlobe. Ground: FPz.
+Channel order in .mat files: FC3, FCz, FC4, C5, C3, C1, Cz, C2, C4, C6, CP3, CP1, CPz, CP2, CP4, Pz
 
 ### Hemisphere Indices
 
-- LEFT:    [0,1,5,6,7,12,13]   → FC5, FC1, C5, C3, C1, CP5, CP1
-- RIGHT:   [3,4,9,10,11,14,15] → FC2, FC6, C2, C4, C6, CP2, CP6
-- MIDLINE: [2,8]               → FCz, Cz
+- LEFT:    [0,3,4,5,10,11]     → FC3, C5, C3, C1, CP3, CP1
+- RIGHT:   [2,7,8,9,13,14]     → FC4, C2, C4, C6, CP2, CP4
+- MIDLINE: [1,6,12,15]         → FCz, Cz, CPz, Pz
+
+### Variable Description (from hackathon slides)
+
+- `fs` — Sampling rate in Hz
+- `y` — EEG data (samples × channels)
+- `trig` — Trigger data: **+1 = left movement, -1 = right movement**
+
+### File Structure
+
+12 files: 3 patients × 2 stages (pre/post) × 2 splits (training/test)
+```
+P1_pre_training.mat   P1_pre_test.mat
+P1_post_training.mat  P1_post_test.mat
+P2_pre_training.mat   P2_pre_test.mat
+P2_post_training.mat  P2_post_test.mat
+P3_pre_training.mat   P3_pre_test.mat
+P3_post_training.mat  P3_post_test.mat
+```
 
 ### Trial Paradigm
 

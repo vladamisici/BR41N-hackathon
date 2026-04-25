@@ -16,19 +16,35 @@ from numpy.typing import NDArray
 
 logger = logging.getLogger(__name__)
 
-# 16-channel sensorimotor montage (10/20)
+# 16-channel sensorimotor montage (g.tec recoveriX, confirmed from hackathon slides)
+#  #1  FC3    #2  FCz    #3  FC4
+#  #4  C5     #5  C3     #6  C1     #7  Cz     #8  C2     #9  C4     #10 C6
+#  #11 CP3    #12 CP1    #13 CPz    #14 CP2    #15 CP4
+#  #16 Pz
 CH_NAMES: list[str] = [
-    "FC5", "FC1", "FCz", "FC2", "FC6",
+    "FC3", "FCz", "FC4",
     "C5", "C3", "C1", "Cz", "C2", "C4", "C6",
-    "CP5", "CP1", "CP2", "CP6",
+    "CP3", "CP1", "CPz", "CP2", "CP4",
+    "Pz",
 ]
 
 SFREQ: float = 500.0
 
-# Hemisphere channel indices
-LEFT_IDX: list[int] = [0, 1, 5, 6, 7, 12, 13]
-RIGHT_IDX: list[int] = [3, 4, 9, 10, 11, 14, 15]
-MIDLINE_IDX: list[int] = [2, 8]
+# Hemisphere channel indices (0-indexed into CH_NAMES)
+# Left:  FC3(0), C5(3), C3(4), C1(5), CP3(10), CP1(11)
+# Right: FC4(2), C2(7), C4(8), C6(9), CP2(13), CP4(14)
+# Midline: FCz(1), Cz(6), CPz(12), Pz(15)
+LEFT_IDX: list[int] = [0, 3, 4, 5, 10, 11]
+RIGHT_IDX: list[int] = [2, 7, 8, 9, 13, 14]
+MIDLINE_IDX: list[int] = [1, 6, 12, 15]
+
+# Key channel indices for lateralization
+C3_IDX: int = 4   # C3 in the 16-ch montage
+C4_IDX: int = 8   # C4 in the 16-ch montage
+
+# Trigger codes (from hackathon slides)
+TRIG_LEFT: int = 1    # +1 = left movement
+TRIG_RIGHT: int = 2   # -1 in raw → remapped to 2 for MNE compatibility
 
 
 def _try_scipy_load(mat_path: str | Path) -> dict[str, Any] | None:
@@ -154,13 +170,25 @@ def load_gtec_stroke_data(
     if trig.ndim == 2:
         trig = trig.flatten()
 
+    # Remap trigger codes for MNE compatibility:
+    # Raw data uses +1 (left) and -1 (right).
+    # MNE find_events expects positive integers, so remap -1 → 2.
+    trig_remapped = trig.copy()
+    trig_remapped[trig == -1] = 2
+    logger.info(
+        "Trigger codes: left(+1)=%d, right(-1→2)=%d, zero=%d",
+        int(np.sum(trig == 1)),
+        int(np.sum(trig == -1)),
+        int(np.sum(trig == 0)),
+    )
+
     # Build MNE info and RawArray
     ch_types = ["eeg"] * len(CH_NAMES) + ["stim"]
     all_names = CH_NAMES + ["STI"]
     info = mne.create_info(ch_names=all_names, sfreq=sfreq, ch_types=ch_types)
 
-    # Stack EEG + trigger
-    all_data = np.vstack([eeg, trig[np.newaxis, :eeg.shape[1]]])
+    # Stack EEG + trigger (use remapped triggers)
+    all_data = np.vstack([eeg, trig_remapped[np.newaxis, :eeg.shape[1]]])
     raw = mne.io.RawArray(all_data, info, verbose=False)
 
     # Set standard 10/20 montage for EEG channels
@@ -227,8 +255,12 @@ def extract_epochs(
     event_ids = sorted(set(events[:, 2]) - {0})
     logger.info("Found %d events with IDs: %s", len(events), event_ids)
 
-    # Build event_id mapping — assume first two non-zero IDs are left/right
-    if len(event_ids) >= 2:
+    # Build event_id mapping
+    # recoveriX data: 1 = left hand, 2 = right hand (remapped from -1)
+    # MOABB/other data: auto-detect first two non-zero IDs
+    if set(event_ids) == {1, 2}:
+        event_id = {"left": 1, "right": 2}
+    elif len(event_ids) >= 2:
         event_id = {"left": event_ids[0], "right": event_ids[1]}
     elif len(event_ids) == 1:
         event_id = {"class_1": event_ids[0]}
@@ -301,3 +333,66 @@ def load_all_patients(
             raise
 
     return patient_data
+
+
+def load_train_test(
+    data_dir: str | Path,
+) -> dict[str, dict[str, tuple[NDArray, NDArray, mne.Epochs]]]:
+    """Load hackathon data organized by patient → stage → train/test split.
+
+    Expects files named: P{n}_{stage}_{split}.mat
+    e.g. P1_pre_training.mat, P1_pre_test.mat, P1_post_training.mat, etc.
+
+    Parameters
+    ----------
+    data_dir : str or Path
+        Directory containing .mat files.
+
+    Returns
+    -------
+    dict
+        Nested mapping: patient_id → {
+            "pre_train": (X, y, epochs),
+            "pre_test": (X, y, epochs),
+            "post_train": (X, y, epochs),
+            "post_test": (X, y, epochs),
+        }
+    """
+    data_dir = Path(data_dir)
+    mat_files = sorted(data_dir.glob("*.mat"))
+
+    if not mat_files:
+        raise FileNotFoundError(f"No .mat files found in {data_dir}")
+
+    result: dict[str, dict[str, tuple[NDArray, NDArray, mne.Epochs]]] = {}
+
+    for mat_file in mat_files:
+        stem = mat_file.stem  # e.g. "P1_pre_training"
+        parts = stem.split("_")
+
+        if len(parts) >= 3:
+            patient = parts[0]           # "P1"
+            stage = parts[1]             # "pre" or "post"
+            split = parts[2]             # "training" or "test"
+        else:
+            # Fallback: load as generic
+            patient = stem
+            stage = "unknown"
+            split = "unknown"
+
+        key = f"{stage}_{'train' if split == 'training' else split}"
+
+        if patient not in result:
+            result[patient] = {}
+
+        logger.info("Loading %s → %s/%s", mat_file.name, patient, key)
+        try:
+            raw, sfreq = load_gtec_stroke_data(mat_file)
+            X, y, epochs = extract_epochs(raw)
+            result[patient][key] = (X, y, epochs)
+            logger.info("  → %d epochs, %d channels", X.shape[0], X.shape[1])
+        except Exception as exc:
+            logger.error("Failed to load %s: %s", mat_file.name, exc)
+            raise
+
+    return result

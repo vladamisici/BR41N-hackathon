@@ -349,3 +349,66 @@ def evaluate_all(
     df = pd.DataFrame(results).sort_values("mean_acc", ascending=False)
     df = df.reset_index(drop=True)
     return df
+
+
+def evaluate_train_test(
+    X_train: NDArray,
+    y_train: NDArray,
+    X_test: NDArray,
+    y_test: NDArray,
+    pipelines: dict[str, Pipeline],
+) -> pd.DataFrame:
+    """Evaluate all pipelines using a fixed train/test split.
+
+    Trains on X_train/y_train, evaluates on X_test/y_test.
+    This matches the hackathon evaluation protocol where
+    training and test sets are provided separately.
+
+    Parameters
+    ----------
+    X_train : NDArray, shape (n_train, n_channels, n_times)
+        Training epoch data.
+    y_train : NDArray, shape (n_train,)
+        Training labels.
+    X_test : NDArray, shape (n_test, n_channels, n_times)
+        Test epoch data.
+    y_test : NDArray, shape (n_test,)
+        Test labels.
+    pipelines : dict[str, Pipeline]
+        Pipeline name → sklearn Pipeline.
+
+    Returns
+    -------
+    pd.DataFrame
+        Results sorted by accuracy descending, columns:
+        pipeline, accuracy, n_train, n_test.
+    """
+    from sklearn.metrics import accuracy_score
+
+    results: list[dict[str, Any]] = []
+
+    for name, pipe in pipelines.items():
+        logger.info("Train/test evaluating %s...", name)
+        try:
+            pipe.fit(X_train, y_train)
+            y_pred = pipe.predict(X_test)
+            acc = accuracy_score(y_test, y_pred)
+            results.append({
+                "pipeline": name,
+                "accuracy": acc,
+                "n_train": len(y_train),
+                "n_test": len(y_test),
+            })
+            logger.info("  %s: %.3f", name, acc)
+        except Exception as exc:
+            logger.error("  %s failed: %s", name, exc)
+            results.append({
+                "pipeline": name,
+                "accuracy": np.nan,
+                "n_train": len(y_train),
+                "n_test": len(y_test),
+            })
+
+    df = pd.DataFrame(results).sort_values("accuracy", ascending=False)
+    df = df.reset_index(drop=True)
+    return df

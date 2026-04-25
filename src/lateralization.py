@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 def compute_laterality_index(
     epochs_data: NDArray,
     sfreq: float,
-    c3_idx: int = 6,
-    c4_idx: int = 10,
+    c3_idx: int = 4,
+    c4_idx: int = 8,
 ) -> dict[str, float]:
     """Compute laterality index for mu and beta bands.
 
@@ -36,9 +36,9 @@ def compute_laterality_index(
     sfreq : float
         Sampling frequency in Hz.
     c3_idx : int
-        Channel index for C3 (default 6 in the 16-ch montage).
+        Channel index for C3 (default 4 in the 16-ch recoveriX montage).
     c4_idx : int
-        Channel index for C4 (default 10 in the 16-ch montage).
+        Channel index for C4 (default 8 in the 16-ch recoveriX montage).
 
     Returns
     -------
