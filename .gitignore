@@ -26,3 +26,12 @@ deploy_dashboard.sh
 
 # Prompt files (internal)
 CLAUDE_PROMPT_FOR_PRESENTATION.md
+
+# Virtual environment
+.venv/
+
+# Hypothesis test cache
+.hypothesis/
+
+# Kiro IDE config
+.kiro/
